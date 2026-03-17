@@ -12,13 +12,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   // JWT may be stale after onboarding — check DB directly
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { onboardingCompleted: true },
-  });
-
-  if (!user?.onboardingCompleted) {
-    redirect("/onboarding");
+  try {
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { onboardingCompleted: true },
+    });
+    if (!user?.onboardingCompleted) {
+      redirect("/onboarding");
+    }
+  } catch (err) {
+    // If DB is unreachable, fall through rather than crashing the layout.
+    // Log so it's visible in server logs.
+    console.error("DashboardLayout DB check failed:", err);
   }
 
   return (

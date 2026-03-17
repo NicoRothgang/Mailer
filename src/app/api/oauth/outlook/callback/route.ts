@@ -82,13 +82,17 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const response = NextResponse.redirect(new URL("/connections?connected=outlook", APP_URL));
+    const redirectTo = state.redirectTo ?? "/connections";
+    const successUrl = new URL(redirectTo, APP_URL);
+    successUrl.searchParams.set("connected", "outlook");
+    const response = NextResponse.redirect(successUrl);
     response.cookies.delete("oauth_state");
     return response;
   } catch (err) {
     console.error("Outlook OAuth callback error:", err);
-    return NextResponse.redirect(
-      new URL(`/connections?error=${encodeURIComponent("Verbindung fehlgeschlagen")}`, APP_URL)
-    );
+    const errorDest = state.redirectTo ?? "/connections";
+    const errorUrl = new URL(errorDest, APP_URL);
+    errorUrl.searchParams.set("error", "Verbindung fehlgeschlagen");
+    return NextResponse.redirect(errorUrl);
   }
 }

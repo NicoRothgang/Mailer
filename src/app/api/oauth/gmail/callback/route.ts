@@ -92,8 +92,10 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (err) {
     console.error("Gmail OAuth callback error:", err);
-    return NextResponse.redirect(
-      new URL(`/connections?error=${encodeURIComponent("Verbindung fehlgeschlagen")}`, APP_URL)
-    );
+    // Redirect back to where the OAuth was initiated, preserving the returnTo context
+    const errorDest = state.redirectTo ?? "/connections";
+    const errorUrl = new URL(errorDest, APP_URL);
+    errorUrl.searchParams.set("error", "Verbindung fehlgeschlagen");
+    return NextResponse.redirect(errorUrl);
   }
 }

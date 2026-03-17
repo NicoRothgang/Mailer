@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Zap, CheckCircle, Plug, RefreshCw, BarChart3, ArrowRight, ArrowLeft } from "lucide-react";
+import { Zap, CheckCircle, Plug, RefreshCw, BarChart3, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { completeOnboarding } from "@/lib/actions/auth";
@@ -46,37 +46,8 @@ const STEPS = [
     title: "Erstes Postfach verbinden",
     description: "Verbinde Gmail oder Outlook, um die Analyse zu starten.",
     icon: Plug,
-    content: (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Du kannst jetzt dein erstes E-Mail-Konto verbinden oder diesen Schritt überspringen.
-        </p>
-        <div className="space-y-3">
-          <a href="/api/oauth/gmail/connect?returnTo=/onboarding">
-            <Button variant="outline" className="w-full justify-start gap-3 h-12">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100">
-                <span className="text-sm font-bold text-red-600">G</span>
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium">Gmail verbinden</p>
-                <p className="text-xs text-muted-foreground">Google / Workspace</p>
-              </div>
-            </Button>
-          </a>
-          <a href="/api/oauth/outlook/connect?returnTo=/onboarding">
-            <Button variant="outline" className="w-full justify-start gap-3 h-12">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
-                <span className="text-sm font-bold text-blue-600">O</span>
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium">Outlook verbinden</p>
-                <p className="text-xs text-muted-foreground">Microsoft / Office 365</p>
-              </div>
-            </Button>
-          </a>
-        </div>
-      </div>
-    ),
+    // content rendered dynamically below (needs connectedProvider / oauthError state)
+    content: null,
   },
   {
     id: 3,
@@ -144,14 +115,22 @@ const STEPS = [
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPending, startTransition] = useTransition();
+  const [connectedProvider, setConnectedProvider] = useState<string | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
-  // If returning from Gmail/Outlook OAuth, jump to step 3 (index 2)
+  // If returning from Gmail/Outlook OAuth, stay on step 2 and show status
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("connected")) {
-      setCurrentStep(2);
+    const connected = params.get("connected");
+    const error = params.get("error");
+    if (connected) {
+      setConnectedProvider(connected);
+      setCurrentStep(1); // stay on step 2 to show connected status
+    } else if (error) {
+      setOauthError(decodeURIComponent(error));
+      setCurrentStep(1); // stay on step 2 to show error
     }
   }, []);
 
@@ -211,7 +190,74 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            <div className="min-h-[200px]">{step.content}</div>
+            <div className="min-h-[200px]">
+              {currentStep === 1 ? (
+                <div className="space-y-4">
+                  {oauthError && (
+                    <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                      <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                      <p>{oauthError}</p>
+                    </div>
+                  )}
+                  {connectedProvider && (
+                    <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-800 p-3 text-sm text-emerald-700 dark:text-emerald-400">
+                      <CheckCircle className="h-4 w-4 shrink-0" />
+                      <p>
+                        <strong className="capitalize">{connectedProvider}</strong> erfolgreich verbunden!
+                        Du kannst jetzt weitermachen.
+                      </p>
+                    </div>
+                  )}
+                  {!connectedProvider && (
+                    <p className="text-sm text-muted-foreground">
+                      Du kannst jetzt dein erstes E-Mail-Konto verbinden oder diesen Schritt überspringen.
+                    </p>
+                  )}
+                  <div className="space-y-3">
+                    <a href="/api/oauth/gmail/connect?returnTo=/onboarding">
+                      <Button
+                        variant={connectedProvider === "gmail" ? "default" : "outline"}
+                        className="w-full justify-start gap-3 h-12"
+                      >
+                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100">
+                          <span className="text-sm font-bold text-red-600">G</span>
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="text-sm font-medium">
+                            {connectedProvider === "gmail" ? "Gmail verbunden ✓" : "Gmail verbinden"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Google / Workspace</p>
+                        </div>
+                        {connectedProvider === "gmail" && (
+                          <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                        )}
+                      </Button>
+                    </a>
+                    <a href="/api/oauth/outlook/connect?returnTo=/onboarding">
+                      <Button
+                        variant={connectedProvider === "outlook" ? "default" : "outline"}
+                        className="w-full justify-start gap-3 h-12"
+                      >
+                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
+                          <span className="text-sm font-bold text-blue-600">O</span>
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="text-sm font-medium">
+                            {connectedProvider === "outlook" ? "Outlook verbunden ✓" : "Outlook verbinden"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Microsoft / Office 365</p>
+                        </div>
+                        {connectedProvider === "outlook" && (
+                          <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                        )}
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                step.content
+              )}
+            </div>
 
             {/* Navigation */}
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
