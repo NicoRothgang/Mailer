@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="w-full max-w-sm">
           {/* Logo */}
           <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white shadow-lg shadow-violet-900/40">
               <Zap className="h-4 w-4" />
             </div>
             <span className="font-semibold text-sm group-hover:text-primary transition-colors">
@@ -21,7 +21,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Right: Visual panel */}
-      <div className="hidden lg:flex flex-col items-center justify-center bg-muted/50 border-l border-border p-12">
+      <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-violet-950/60 to-background border-l border-border p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
         <div className="max-w-md space-y-8">
           <div className="space-y-3">
             <h2 className="text-2xl font-bold">Dein Postfach. Wieder unter Kontrolle.</h2>
@@ -41,8 +42,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               "OAuth-Tokens AES-256 verschlüsselt",
             ].map((item) => (
               <li key={item} className="flex items-center gap-2.5 text-sm">
-                <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Zap className="h-3 w-3 text-primary" />
+                <div className="h-5 w-5 rounded-lg bg-violet-500/15 flex items-center justify-center shrink-0">
+                  <Zap className="h-3 w-3 text-violet-400" />
                 </div>
                 {item}
               </li>

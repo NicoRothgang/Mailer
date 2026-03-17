@@ -66,19 +66,20 @@ export function Sidebar({ user }: SidebarProps) {
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "relative flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out",
+          "relative flex flex-col h-screen border-r border-sidebar-border transition-all duration-300 ease-in-out",
+          "bg-sidebar-background",
           collapsed ? "w-[60px]" : "w-[240px]"
         )}
       >
         {/* Logo */}
-        <div className={cn("flex items-center h-16 px-4 gap-2 shrink-0", collapsed && "justify-center px-0")}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+        <div className={cn("flex items-center h-16 px-4 gap-3 shrink-0", collapsed && "justify-center px-0")}>
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white shrink-0 shadow-lg shadow-violet-900/40">
             <Zap className="h-4 w-4" />
           </div>
           {!collapsed && (
-            <div className="flex flex-col leading-none overflow-hidden">
-              <span className="font-semibold text-sm text-sidebar-foreground truncate">Mail Control</span>
-              <span className="text-[10px] text-muted-foreground">Center</span>
+            <div className="flex flex-col leading-none">
+              <span className="font-bold text-sm text-foreground">Mail Control</span>
+              <span className="text-[10px] text-muted-foreground tracking-wider uppercase">Center</span>
             </div>
           )}
         </div>
@@ -86,64 +87,62 @@ export function Sidebar({ user }: SidebarProps) {
         <Separator className="bg-sidebar-border" />
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2 scrollbar-thin">
-          <ul className="space-y-0.5">
-            {NAV_ITEMS.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-              const Icon = item.icon;
+        <nav className="flex-1 overflow-y-auto py-4 px-2 scrollbar-thin space-y-0.5">
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const Icon = item.icon;
 
-              if (collapsed) {
-                return (
-                  <li key={item.href}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex h-9 w-full items-center justify-center rounded-lg transition-colors",
-                            isActive
-                              ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                          )}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">{item.label}</TooltipContent>
-                    </Tooltip>
-                  </li>
-                );
-              }
-
+            if (collapsed) {
               return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                    {item.badge && (
-                      <span className="ml-auto rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                </li>
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex h-9 w-full items-center justify-center rounded-xl transition-all duration-150",
+                        isActive
+                          ? "bg-violet-600/20 text-violet-400 shadow-sm shadow-violet-900/30"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.label}</TooltipContent>
+                </Tooltip>
               );
-            })}
-          </ul>
+            }
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex h-9 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all duration-150",
+                  isActive
+                    ? "bg-violet-600/20 text-violet-400 shadow-sm shadow-violet-900/30"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-violet-400")} />
+                <span className="truncate">{item.label}</span>
+                {item.badge && (
+                  <span className="ml-auto rounded-full bg-violet-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-violet-400">
+                    {item.badge}
+                  </span>
+                )}
+                {isActive && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-400 shrink-0" />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         <Separator className="bg-sidebar-border" />
 
         {/* Bottom section */}
-        <div className={cn("p-2 space-y-0.5")}>
+        <div className="p-2 space-y-0.5">
           {/* Settings */}
           {collapsed ? (
             <Tooltip>
@@ -151,9 +150,9 @@ export function Sidebar({ user }: SidebarProps) {
                 <Link
                   href="/settings"
                   className={cn(
-                    "flex h-9 w-full items-center justify-center rounded-lg transition-colors",
+                    "flex h-9 w-full items-center justify-center rounded-xl transition-all duration-150",
                     pathname === "/settings"
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      ? "bg-violet-600/20 text-violet-400"
                       : "text-sidebar-foreground hover:bg-sidebar-accent"
                   )}
                 >
@@ -166,9 +165,9 @@ export function Sidebar({ user }: SidebarProps) {
             <Link
               href="/settings"
               className={cn(
-                "flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+                "flex h-9 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all duration-150",
                 pathname === "/settings"
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                  ? "bg-violet-600/20 text-violet-400"
                   : "text-sidebar-foreground hover:bg-sidebar-accent"
               )}
             >
@@ -183,24 +182,24 @@ export function Sidebar({ user }: SidebarProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => logoutUser()}
-                  className="flex h-9 w-full items-center justify-center rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                  className="flex h-9 w-full items-center justify-center rounded-xl text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                 >
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={user.image ?? undefined} />
-                    <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                    <AvatarFallback className="text-[10px] bg-violet-900/50 text-violet-300">{initials}</AvatarFallback>
                   </Avatar>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right">{user.name ?? user.email}</TooltipContent>
             </Tooltip>
           ) : (
-            <div className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-sidebar-accent transition-colors group">
+            <div className="flex items-center gap-2 rounded-xl px-2 py-2 hover:bg-sidebar-accent transition-colors group cursor-default">
               <Avatar className="h-7 w-7 shrink-0">
                 <AvatarImage src={user.image ?? undefined} />
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                <AvatarFallback className="text-xs bg-violet-900/50 text-violet-300">{initials}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-sidebar-foreground truncate">{user.name ?? "User"}</p>
+                <p className="text-xs font-medium text-foreground truncate">{user.name ?? "User"}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
               </div>
               <form action={logoutUser}>
@@ -221,7 +220,7 @@ export function Sidebar({ user }: SidebarProps) {
           variant="ghost"
           size="icon-sm"
           onClick={() => setCollapsed((c) => !c)}
-          className="absolute -right-3 top-[72px] h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-accent z-10"
+          className="absolute -right-3 top-[72px] h-6 w-6 rounded-full border border-border bg-sidebar-background shadow-sm hover:bg-sidebar-accent z-10"
         >
           {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </Button>

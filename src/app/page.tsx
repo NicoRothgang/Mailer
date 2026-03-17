@@ -19,37 +19,37 @@ const FEATURES = [
     icon: Mail,
     title: "Newsletter verwalten",
     description: "Erkenne alle Newsletter automatisch. Melde dich mit einem Klick von unerwünschten Absendern ab.",
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-blue-500/10 text-blue-400",
   },
   {
     icon: CreditCard,
     title: "Abos erkennen",
     description: "Sieh alle aktiven Abonnements auf einen Blick. Erkenne ungenutztes Sparpotenzial sofort.",
-    color: "bg-purple-100 text-purple-600",
+    color: "bg-violet-500/10 text-violet-400",
   },
   {
     icon: ShieldCheck,
     title: "Spam & Risiken",
     description: "Heuristische Analyse verdächtiger Mails. Risikofaktoren transparent erklärt.",
-    color: "bg-red-100 text-red-600",
+    color: "bg-red-500/10 text-red-400",
   },
   {
     icon: Users,
     title: "Sender organisieren",
     description: "Alle Absender übersichtlich gruppiert nach Marken und Kategorien.",
-    color: "bg-amber-100 text-amber-600",
+    color: "bg-amber-500/10 text-amber-400",
   },
   {
     icon: BarChart3,
     title: "Insights & Analytics",
     description: "Inbox Health Score, Volumentrends und Optimierungspotenziale auf einem Blick.",
-    color: "bg-emerald-100 text-emerald-600",
+    color: "bg-emerald-500/10 text-emerald-400",
   },
   {
     icon: Zap,
     title: "Bulk Cleanup",
     description: "Alte Werbemails und unnötige Massen-E-Mails sicher und schnell aufräumen.",
-    color: "bg-indigo-100 text-indigo-600",
+    color: "bg-pink-500/10 text-pink-400",
   },
 ];
 
@@ -63,13 +63,13 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
+      <nav className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/70 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white shadow-lg shadow-violet-900/40">
               <Zap className="h-4 w-4" />
             </div>
-            <span className="font-semibold text-sm">Mail Control Center</span>
+            <span className="font-bold text-sm">Mail Control Center</span>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
@@ -93,7 +93,7 @@ export default function LandingPage() {
             Dein E-Mail-Postfach. Endlich unter Kontrolle.
           </Badge>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground max-w-3xl text-balance">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground max-w-3xl text-balance leading-tight">
             Übernimm die{" "}
             <span className="gradient-text">Kontrolle</span>
             {" "}über dein Postfach
@@ -156,7 +156,7 @@ export default function LandingPage() {
                 {["Dashboard", "Verbindungen", "Newsletter", "Abos", "Spam & Risiken", "Sender", "Insights"].map((item, i) => (
                   <div
                     key={item}
-                    className={`rounded-md px-2 py-1.5 text-xs ${i === 0 ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground"}`}
+                    className={`rounded-lg px-2 py-1.5 text-xs ${i === 0 ? "bg-violet-600/20 text-violet-400 font-medium" : "text-muted-foreground"}`}
                   >
                     {item}
                   </div>
@@ -167,10 +167,10 @@ export default function LandingPage() {
             <div className="flex-1 p-4 overflow-hidden">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                 {[
-                  { label: "Health Score", value: "78", color: "text-emerald-600" },
-                  { label: "Newsletter", value: "42", color: "text-blue-600" },
-                  { label: "Spam-Risiken", value: "3", color: "text-red-600" },
-                  { label: "Abos", value: "12", color: "text-purple-600" },
+                  { label: "Health Score", value: "78", color: "text-emerald-400" },
+                  { label: "Newsletter", value: "42", color: "text-blue-400" },
+                  { label: "Spam-Risiken", value: "3", color: "text-red-400" },
+                  { label: "Abos", value: "12", color: "text-violet-400" },
                 ].map((kpi) => (
                   <div key={kpi.label} className="rounded-lg border border-border bg-card p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{kpi.label}</p>
@@ -233,22 +233,25 @@ export default function LandingPage() {
                 icon: ShieldCheck,
                 title: "Verschlüsselte Tokens",
                 desc: "OAuth-Tokens werden AES-256-GCM verschlüsselt gespeichert. Niemals im Klartext.",
+                color: "bg-emerald-500/10 text-emerald-400",
               },
               {
                 icon: Zap,
                 title: "Minimale Berechtigungen",
                 desc: "Wir fordern nur die Berechtigungen an, die wirklich notwendig sind.",
+                color: "bg-violet-500/10 text-violet-400",
               },
               {
                 icon: CheckCircle,
                 title: "Jederzeit löschbar",
                 desc: "Trenne Provider-Verbindungen oder lösche deinen Account jederzeit vollständig.",
+                color: "bg-blue-500/10 text-blue-400",
               },
             ].map((item) => {
               const Icon = item.icon;
               return (
                 <div key={item.title} className="flex flex-col items-center text-center gap-2">
-                  <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${item.color}`}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <p className="font-semibold text-sm">{item.title}</p>

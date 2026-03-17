@@ -33,7 +33,7 @@ export function Header({ className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "h-16 flex items-center justify-between px-6 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10",
+        "h-16 flex items-center justify-between px-6 border-b border-border bg-background/60 backdrop-blur-md sticky top-0 z-10",
         className
       )}
     >
