@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Abos" };
