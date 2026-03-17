@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Zap, CheckCircle, Plug, RefreshCw, BarChart3, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -146,14 +146,14 @@ export default function OnboardingPage() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { data: session, update } = useSession();
-  const searchParams = useSearchParams();
 
   // If returning from Gmail/Outlook OAuth, jump to step 3 (index 2)
   useEffect(() => {
-    if (searchParams.get("connected")) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected")) {
       setCurrentStep(2);
     }
-  }, [searchParams]);
+  }, []);
 
   const step = STEPS[currentStep];
   const Icon = step.icon;
