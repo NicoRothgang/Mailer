@@ -1,4 +1,4 @@
-import type { EmailProvider, MessageCategory } from "@prisma/client";
+import type { EmailProvider } from "@prisma/client";
 import type { ClassificationResult } from "@/types";
 
 // ─────────────────────────────────────────────

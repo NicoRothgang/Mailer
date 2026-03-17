@@ -10,7 +10,6 @@ import { classifyMessage } from "./classifier";
 import { db } from "@/lib/db";
 import { encrypt } from "@/lib/crypto";
 import { emailToDomain } from "@/lib/utils";
-import { MessageCategory } from "@prisma/client";
 
 const GMAIL_API = "https://gmail.googleapis.com/gmail/v1";
 const GOOGLE_AUTH = "https://oauth2.googleapis.com";
@@ -254,8 +253,6 @@ async function syncMessages(ctx: SyncContext): Promise<SyncResult> {
           },
           update: {}, // Don't overwrite existing messages
         });
-
-        const isNew = created.createdAt.getTime() === created.createdAt.getTime();
 
         // Update newsletter entity
         if (classification.isNewsletter) {

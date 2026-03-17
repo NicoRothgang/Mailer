@@ -14,22 +14,27 @@ export async function registerUser(input: RegisterInput) {
 
   const { name, email, password } = parsed.data;
 
-  const existing = await db.user.findUnique({ where: { email } });
-  if (existing) {
-    return { success: false as const, error: "Diese E-Mail-Adresse ist bereits registriert." };
+  try {
+    const existing = await db.user.findUnique({ where: { email } });
+    if (existing) {
+      return { success: false as const, error: "Diese E-Mail-Adresse ist bereits registriert." };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    await db.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    return { success: true as const };
+  } catch (err) {
+    console.error("registerUser error:", err);
+    return { success: false as const, error: "Registrierung fehlgeschlagen. Bitte versuche es erneut." };
   }
-
-  const hashedPassword = await bcrypt.hash(password, 12);
-
-  await db.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-  });
-
-  return { success: true as const };
 }
 
 export async function loginUser(email: string, password: string, callbackUrl?: string) {

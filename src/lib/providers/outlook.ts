@@ -200,7 +200,7 @@ async function syncMessages(ctx: SyncContext): Promise<SyncResult> {
           update: { totalMessages: { increment: 1 }, lastMessageAt: msg.sentAt },
         });
 
-        const created = await db.emailMessage.upsert({
+        await db.emailMessage.upsert({
           where: { connectionId_providerMessageId: { connectionId: ctx.connectionId, providerMessageId: msg.providerMessageId } },
           create: {
             userId: ctx.userId,

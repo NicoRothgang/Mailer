@@ -30,7 +30,6 @@ import {
   Zap,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 /* ─── Mock data ─────────────────────────────────────────────── */
 

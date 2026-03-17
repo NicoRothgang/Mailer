@@ -22,7 +22,7 @@ export async function getUserConnections(): Promise<ConnectionWithStats[]> {
     orderBy: { createdAt: "asc" },
   });
 
-  return connections.map(({ syncJobs, accessTokenEnc, refreshTokenEnc, ...conn }) => ({
+  return connections.map(({ syncJobs, accessTokenEnc: _a, refreshTokenEnc: _r, ...conn }) => ({
     ...conn,
     latestSync: syncJobs[0] ?? null,
   }));

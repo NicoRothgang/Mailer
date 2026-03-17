@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password"];
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password"];
 const ONBOARDING_ROUTE = "/onboarding";
 const DEFAULT_LOGIN_REDIRECT = "/dashboard";
@@ -10,7 +9,6 @@ const DEFAULT_LOGIN_REDIRECT = "/dashboard";
 export default auth((req: NextRequest & { auth: { user?: { id?: string; onboardingCompleted?: boolean } } | null }) => {
   const { nextUrl, auth: session } = req;
   const isLoggedIn = !!session?.user;
-  const isPublicRoute = PUBLIC_ROUTES.includes(nextUrl.pathname);
   const isAuthRoute = AUTH_ROUTES.includes(nextUrl.pathname);
   const isOnboardingRoute = nextUrl.pathname === ONBOARDING_ROUTE;
   const isDashboardRoute = nextUrl.pathname.startsWith("/dashboard") ||
