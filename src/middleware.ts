@@ -41,14 +41,6 @@ export default auth((req: NextRequest & { auth: { user?: { id?: string; onboardi
     return NextResponse.redirect(new URL("/login", nextUrl));
   }
 
-  // Redirect to onboarding if not completed (only for dashboard routes)
-  if (isDashboardRoute && isLoggedIn) {
-    const onboardingCompleted = session?.user?.onboardingCompleted ?? false;
-    if (!onboardingCompleted) {
-      return NextResponse.redirect(new URL(ONBOARDING_ROUTE, nextUrl));
-    }
-  }
-
   return NextResponse.next();
 });
 

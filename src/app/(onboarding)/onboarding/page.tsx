@@ -145,7 +145,7 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const { data: session, update } = useSession();
+  const { data: session } = useSession();
 
   // If returning from Gmail/Outlook OAuth, jump to step 3 (index 2)
   useEffect(() => {
@@ -165,12 +165,11 @@ export default function OnboardingPage() {
       try {
         if (session?.user?.id) {
           await completeOnboarding(session.user.id);
-          await update({ onboardingCompleted: true });
         }
       } catch (err) {
         console.error("completeOnboarding error:", err);
       }
-      // Full page reload so middleware picks up the updated JWT cookie
+      // Full page reload — DashboardLayout checks DB directly, no JWT update needed
       window.location.href = "/dashboard";
     });
   };
