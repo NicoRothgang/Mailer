@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { registerSchema, type RegisterInput } from "@/lib/validations";
-import { registerUser, loginUser } from "@/lib/actions/auth";
+import { registerUser } from "@/lib/actions/auth";
 import { cn } from "@/lib/utils";
 
 const PASSWORD_REQUIREMENTS = [
@@ -20,6 +22,7 @@ const PASSWORD_REQUIREMENTS = [
 ];
 
 export function RegisterForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -37,14 +40,31 @@ export function RegisterForm() {
 
   const onSubmit = async (data: RegisterInput) => {
     setServerError(null);
+
+    // Step 1: Create account via server action
     const result = await registerUser(data);
     if (!result.success) {
       setServerError(result.error);
       return;
     }
+
     setSuccess(true);
-    // Auto-login after registration
-    await loginUser(data.email, data.password);
+
+    // Step 2: Sign in client-side (avoids server redirect issues)
+    const signInResult = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
+
+    if (signInResult?.error) {
+      setServerError("Konto erstellt, aber Anmeldung fehlgeschlagen. Bitte manuell anmelden.");
+      router.push("/login");
+      return;
+    }
+
+    router.push("/onboarding");
+    router.refresh();
   };
 
   if (success) {
@@ -121,7 +141,6 @@ export function RegisterForm() {
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        {/* Password strength indicators */}
         {password && (
           <ul className="space-y-1 mt-1.5">
             {PASSWORD_REQUIREMENTS.map((req) => (

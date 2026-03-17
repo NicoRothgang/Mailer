@@ -3,20 +3,22 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { loginSchema, type LoginInput } from "@/lib/validations";
-import { loginUser } from "@/lib/actions/auth";
 
 interface LoginFormProps {
   callbackUrl?: string;
 }
 
 export function LoginForm({ callbackUrl }: LoginFormProps) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -30,10 +32,20 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
 
   const onSubmit = async (data: LoginInput) => {
     setServerError(null);
-    const result = await loginUser(data.email, data.password, callbackUrl);
-    if (result && !result.success) {
-      setServerError(result.error);
+
+    const result = await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setServerError("Ungültige E-Mail oder Passwort.");
+      return;
     }
+
+    router.push(callbackUrl ?? "/dashboard");
+    router.refresh();
   };
 
   return (
@@ -67,10 +79,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Passwort</Label>
-          <Link
-            href="/forgot-password"
-            className="text-xs text-primary hover:underline"
-          >
+          <Link href="/forgot-password" className="text-xs text-primary hover:underline">
             Vergessen?
           </Link>
         </div>
