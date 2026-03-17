@@ -1,0 +1,413 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─────────────────────────────────────────────
+// CORE AUTH (NextAuth v5 / Auth.js required)
+// ─────────────────────────────────────────────
+
+model User {
+  id                  String    @id @default(cuid())
+  name                String?
+  email               String    @unique
+  emailVerified       DateTime?
+  image               String?
+  password            String?   // hashed, null for OAuth-only users
+  role                UserRole  @default(USER)
+  onboardingCompleted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // NextAuth relations
+  accounts            Account[]
+  sessions            Session[]
+
+  // App relations
+  providerConnections ProviderConnection[]
+  emailMessages       EmailMessage[]
+  senders             Sender[]
+  newsletterEntities  NewsletterEntity[]
+  subscriptionEntities SubscriptionEntity[]
+  riskEntities        RiskEntity[]
+  inboxScoreSnapshots InboxScoreSnapshot[]
+  userActionLogs      UserActionLog[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum EmailProvider {
+  GMAIL
+  OUTLOOK
+}
+
+enum ConnectionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  ERROR
+}
+
+enum MessageCategory {
+  NEWSLETTER
+  PROMOTION
+  SUBSCRIPTION_BILLING
+  ORDER_CONFIRMATION
+  SHIPPING
+  SECURITY
+  SOCIAL
+  SPAM_SUSPECT
+  PHISHING_SUSPECT
+  PERSONAL
+  TRANSACTIONAL
+  OTHER
+}
+
+enum NewsletterStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  PENDING_UNSUBSCRIBE
+  ARCHIVED
+  IGNORED
+}
+
+enum SubscriptionCategory {
+  SOFTWARE_SAAS
+  STREAMING_MEDIA
+  GAMING
+  CLOUD_STORAGE
+  NEWS_MEDIA
+  FITNESS
+  FOOD_DELIVERY
+  ECOMMERCE_MEMBERSHIP
+  UTILITIES
+  FINANCE
+  EDUCATION
+  PRODUCTIVITY
+  OTHER
+}
+
+enum BillingInterval {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  ONE_TIME
+  UNKNOWN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  POSSIBLY_INACTIVE
+  CANCELLED
+  UNKNOWN
+}
+
+enum RiskStatus {
+  PENDING_REVIEW
+  CONFIRMED_SPAM
+  CONFIRMED_PHISHING
+  FALSE_POSITIVE
+  IGNORED
+  DELETED
+}
+
+enum SyncStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SyncType {
+  INITIAL
+  INCREMENTAL
+  MANUAL
+}
+
+// ─────────────────────────────────────────────
+// PROVIDER CONNECTIONS (Level 2 Auth)
+// ─────────────────────────────────────────────
+
+model ProviderConnection {
+  id               String           @id @default(cuid())
+  userId           String
+  provider         EmailProvider
+  email            String
+  displayName      String?
+  // Tokens are AES-256-GCM encrypted — never expose to client
+  accessTokenEnc   String           @db.Text
+  refreshTokenEnc  String?          @db.Text
+  tokenExpiry      DateTime?
+  scopes           String[]
+  status           ConnectionStatus @default(ACTIVE)
+  lastSyncAt       DateTime?
+  totalMessages    Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncJobs      SyncJob[]
+  emailMessages EmailMessage[]
+
+  @@unique([userId, provider, email])
+  @@index([userId, provider])
+}
+
+// ─────────────────────────────────────────────
+// EMAIL MESSAGES (metadata only, not full body)
+// ─────────────────────────────────────────────
+
+model EmailMessage {
+  id                String          @id @default(cuid())
+  userId            String
+  connectionId      String
+  providerMessageId String
+  subject           String?
+  fromEmail         String
+  fromName          String?
+  fromDomain        String
+  toEmails          String[]
+  sentAt            DateTime
+  receivedAt        DateTime
+  isRead            Boolean         @default(false)
+  snippet           String?         @db.Text  // max 200 chars preview
+  hasListUnsubscribe Boolean        @default(false)
+  unsubscribeUrl    String?
+  unsubscribeEmail  String?
+  listId            String?
+  labels            String[]
+  category          MessageCategory?
+  riskScore         Int?            // 0–100
+  isNewsletter      Boolean         @default(false)
+  isSubscription    Boolean         @default(false)
+  isFlagged         Boolean         @default(false)
+  senderId          String?
+  createdAt         DateTime        @default(now())
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connection   ProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  sender       Sender?            @relation(fields: [senderId], references: [id])
+  riskEntities RiskEntity[]
+
+  @@unique([connectionId, providerMessageId])
+  @@index([userId, sentAt])
+  @@index([userId, fromDomain])
+  @@index([userId, category])
+  @@index([userId, isNewsletter])
+}
+
+// ─────────────────────────────────────────────
+// SENDERS (aggregated per user + domain)
+// ─────────────────────────────────────────────
+
+model Sender {
+  id            String            @id @default(cuid())
+  userId        String
+  domain        String
+  brandName     String?
+  primaryEmail  String?
+  totalMessages Int               @default(0)
+  lastMessageAt DateTime?
+  categories    MessageCategory[]
+  isMuted       Boolean           @default(false)
+  isTrusted     Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailMessages        EmailMessage[]
+  newsletterEntities   NewsletterEntity[]
+  subscriptionEntities SubscriptionEntity[]
+
+  @@unique([userId, domain])
+  @@index([userId, totalMessages])
+}
+
+// ─────────────────────────────────────────────
+// NEWSLETTERS
+// ─────────────────────────────────────────────
+
+model NewsletterEntity {
+  id               String           @id @default(cuid())
+  userId           String
+  senderId         String?
+  senderEmail      String
+  senderName       String?
+  messageCount     Int              @default(0)
+  lastMessageAt    DateTime?
+  firstMessageAt   DateTime?
+  unsubscribeUrl   String?
+  unsubscribeEmail String?
+  status           NewsletterStatus @default(ACTIVE)
+  unsubscribedAt   DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sender Sender? @relation(fields: [senderId], references: [id])
+
+  @@unique([userId, senderEmail])
+  @@index([userId, status])
+}
+
+// ─────────────────────────────────────────────
+// SUBSCRIPTIONS (billing / services)
+// ─────────────────────────────────────────────
+
+model SubscriptionEntity {
+  id               String               @id @default(cuid())
+  userId           String
+  senderId         String?
+  serviceName      String
+  serviceCategory  SubscriptionCategory
+  estimatedCost    Float?
+  currency         String               @default("EUR")
+  billingInterval  BillingInterval?
+  lastBillingDate  DateTime?
+  nextBillingDate  DateTime?
+  managementUrl    String?
+  cancelUrl        String?
+  status           SubscriptionStatus   @default(ACTIVE)
+  confidenceScore  Int                  @default(50) // 0–100
+  notes            String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sender Sender? @relation(fields: [senderId], references: [id])
+
+  @@index([userId, status])
+}
+
+// ─────────────────────────────────────────────
+// RISK / SPAM ENTITIES
+// ─────────────────────────────────────────────
+
+model RiskEntity {
+  id          String     @id @default(cuid())
+  userId      String
+  messageId   String
+  riskScore   Int        // 0–100
+  riskFactors Json       // RiskFactor[]
+  status      RiskStatus @default(PENDING_REVIEW)
+  reviewedAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message EmailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([userId, riskScore])
+  @@index([userId, status])
+}
+
+// ─────────────────────────────────────────────
+// SYNC JOBS
+// ─────────────────────────────────────────────
+
+model SyncJob {
+  id                String     @id @default(cuid())
+  connectionId      String
+  status            SyncStatus @default(QUEUED)
+  syncType          SyncType   @default(INCREMENTAL)
+  startedAt         DateTime?
+  completedAt       DateTime?
+  messagesProcessed Int        @default(0)
+  newMessages       Int        @default(0)
+  errorMessage      String?
+  createdAt         DateTime   @default(now())
+
+  connection ProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, status])
+}
+
+// ─────────────────────────────────────────────
+// INBOX HEALTH SCORE HISTORY
+// ─────────────────────────────────────────────
+
+model InboxScoreSnapshot {
+  id                String   @id @default(cuid())
+  userId            String
+  score             Int      // 0–100
+  newsletterCount   Int      @default(0)
+  spamRiskCount     Int      @default(0)
+  subscriptionCount Int      @default(0)
+  totalMessages     Int      @default(0)
+  calculatedAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, calculatedAt])
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG
+// ─────────────────────────────────────────────
+
+model UserActionLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // "unsubscribe", "delete_messages", "mark_spam", etc.
+  targetType String?  // "newsletter", "message", "connection"
+  targetId   String?
+  details    Json?
+  status     String   @default("success") // success | failed | pending
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
