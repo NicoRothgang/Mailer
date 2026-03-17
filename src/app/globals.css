@@ -98,6 +98,28 @@
     text-wrap: balance;
   }
 
+  /* Glassmorphism card */
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(167, 139, 250, 0.2);
+  }
+
+  /* Ambient glow blobs for the dashboard background */
+  .bg-radial-violet {
+    background: radial-gradient(ellipse 60% 50% at 20% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  }
+
+  .bg-radial-pink {
+    background: radial-gradient(ellipse 50% 40% at 80% 70%, rgba(236, 72, 153, 0.06) 0%, transparent 70%);
+  }
+
   /* Scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
