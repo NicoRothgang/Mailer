@@ -5,6 +5,7 @@ import { ProviderCard } from "@/components/connections/provider-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConnectionNotifications } from "@/components/connections/connection-notifications";
 
 export const metadata: Metadata = { title: "Verbindungen" };
 
@@ -25,6 +26,7 @@ export default async function ConnectionsPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
+      <ConnectionNotifications />
       <PageHeader
         title="E-Mail-Verbindungen"
         description="Verbinde deine Postfächer, um die Analyse zu starten."

@@ -11,21 +11,25 @@ export async function getUserConnections(): Promise<ConnectionWithStats[]> {
   const session = await auth();
   if (!session?.user?.id) return [];
 
-  const connections = await db.providerConnection.findMany({
-    where: { userId: session.user.id },
-    include: {
-      syncJobs: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
+  try {
+    const connections = await db.providerConnection.findMany({
+      where: { userId: session.user.id },
+      include: {
+        syncJobs: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
-    },
-    orderBy: { createdAt: "asc" },
-  });
+      orderBy: { createdAt: "asc" },
+    });
 
-  return connections.map(({ syncJobs, accessTokenEnc: _a, refreshTokenEnc: _r, ...conn }) => ({
-    ...conn,
-    latestSync: syncJobs[0] ?? null,
-  }));
+    return connections.map(({ syncJobs, accessTokenEnc: _a, refreshTokenEnc: _r, ...conn }) => ({
+      ...conn,
+      latestSync: syncJobs[0] ?? null,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 /** Delete / disconnect a provider connection */
