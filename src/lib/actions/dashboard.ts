@@ -10,6 +10,7 @@ export async function getDashboardStats(): Promise<DashboardStats | null> {
 
   const userId = session.user.id;
 
+  try {
   const [
     latestScore,
     totalMessages,
@@ -72,6 +73,10 @@ export async function getDashboardStats(): Promise<DashboardStats | null> {
     topSenders,
     recentActivity,
   };
+  } catch (err) {
+    console.error("getDashboardStats error:", err);
+    return null;
+  }
 }
 
 function calculateHealthScore({

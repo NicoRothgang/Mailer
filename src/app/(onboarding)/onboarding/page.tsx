@@ -162,12 +162,16 @@ export default function OnboardingPage() {
 
   const handleFinish = () => {
     startTransition(async () => {
-      if (session?.user?.id) {
-        await completeOnboarding(session.user.id);
-        // Update JWT so middleware sees onboardingCompleted = true
-        await update({ onboardingCompleted: true });
+      try {
+        if (session?.user?.id) {
+          await completeOnboarding(session.user.id);
+          await update({ onboardingCompleted: true });
+        }
+      } catch (err) {
+        console.error("completeOnboarding error:", err);
       }
-      router.push("/dashboard");
+      // Full page reload so middleware picks up the updated JWT cookie
+      window.location.href = "/dashboard";
     });
   };
 
