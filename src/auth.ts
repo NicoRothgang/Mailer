@@ -10,7 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(db) as any,
   session: {
-    strategy: "database",
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
@@ -48,24 +48,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
-      if (session.user && user) {
-        session.user.id = user.id;
-        session.user.role = (user as { role: UserRole }).role;
-        session.user.onboardingCompleted = (user as { onboardingCompleted: boolean }).onboardingCompleted;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as { role: UserRole }).role;
+        token.onboardingCompleted = (user as { onboardingCompleted: boolean }).onboardingCompleted;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as UserRole;
+        session.user.onboardingCompleted = token.onboardingCompleted as boolean;
       }
       return session;
-    },
-  },
-  events: {
-    async signIn({ user, isNewUser }) {
-      if (isNewUser && user.id) {
-        // New users go through onboarding
-        await db.user.update({
-          where: { id: user.id },
-          data: { onboardingCompleted: false },
-        });
-      }
     },
   },
 });
