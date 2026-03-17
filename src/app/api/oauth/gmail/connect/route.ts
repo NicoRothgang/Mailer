@@ -1,20 +1,23 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { gmailAdapter } from "@/lib/providers/gmail";
 import { encrypt } from "@/lib/crypto";
 import type { OAuthState } from "@/types";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.redirect(new URL("/login", process.env.NEXT_PUBLIC_APP_URL));
   }
+
+  const returnTo = new URL(request.url).searchParams.get("returnTo") ?? undefined;
 
   // Create CSRF state token
   const state: OAuthState = {
     userId: session.user.id,
     provider: "GMAIL",
     nonce: crypto.randomUUID(),
+    redirectTo: returnTo,
   };
 
   const stateEncrypted = encrypt(JSON.stringify(state));

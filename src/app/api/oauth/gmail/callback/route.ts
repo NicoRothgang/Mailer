@@ -84,7 +84,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const response = NextResponse.redirect(new URL("/connections?connected=gmail", APP_URL));
+    const redirectTo = state.redirectTo ?? "/connections";
+    const successUrl = new URL(redirectTo, APP_URL);
+    successUrl.searchParams.set("connected", "gmail");
+    const response = NextResponse.redirect(successUrl);
     response.cookies.delete("oauth_state");
     return response;
   } catch (err) {

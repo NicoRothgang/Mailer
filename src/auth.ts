@@ -45,11 +45,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: sessionData }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role: UserRole }).role;
         token.onboardingCompleted = (user as { onboardingCompleted: boolean }).onboardingCompleted;
+      }
+      if (trigger === "update" && (sessionData as { onboardingCompleted?: boolean })?.onboardingCompleted !== undefined) {
+        token.onboardingCompleted = (sessionData as { onboardingCompleted: boolean }).onboardingCompleted;
       }
       return token;
     },

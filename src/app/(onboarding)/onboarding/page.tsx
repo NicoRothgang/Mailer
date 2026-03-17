@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Zap, CheckCircle, Plug, RefreshCw, BarChart3, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ const STEPS = [
           Du kannst jetzt dein erstes E-Mail-Konto verbinden oder diesen Schritt überspringen.
         </p>
         <div className="space-y-3">
-          <a href="/api/oauth/gmail/connect">
+          <a href="/api/oauth/gmail/connect?returnTo=/onboarding">
             <Button variant="outline" className="w-full justify-start gap-3 h-12">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100">
                 <span className="text-sm font-bold text-red-600">G</span>
@@ -63,7 +63,7 @@ const STEPS = [
               </div>
             </Button>
           </a>
-          <a href="/api/oauth/outlook/connect">
+          <a href="/api/oauth/outlook/connect?returnTo=/onboarding">
             <Button variant="outline" className="w-full justify-start gap-3 h-12">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
                 <span className="text-sm font-bold text-blue-600">O</span>
@@ -145,7 +145,15 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
+  const searchParams = useSearchParams();
+
+  // If returning from Gmail/Outlook OAuth, jump to step 3 (index 2)
+  useEffect(() => {
+    if (searchParams.get("connected")) {
+      setCurrentStep(2);
+    }
+  }, [searchParams]);
 
   const step = STEPS[currentStep];
   const Icon = step.icon;
@@ -156,9 +164,10 @@ export default function OnboardingPage() {
     startTransition(async () => {
       if (session?.user?.id) {
         await completeOnboarding(session.user.id);
+        // Update JWT so middleware sees onboardingCompleted = true
+        await update({ onboardingCompleted: true });
       }
       router.push("/dashboard");
-      router.refresh();
     });
   };
 
